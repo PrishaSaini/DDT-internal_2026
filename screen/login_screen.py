@@ -1,4 +1,5 @@
 import tkinter as tk
+from tkinter import messagebox
 
 class LoginScreen:
     def __init__(self, root):
@@ -19,3 +20,10 @@ class LoginScreen:
 
         tk.Button(self.frame, text="Login", command=self.login).pack(pady=10)
         tk.Button(self.frame, text="Go to Sign Up", command=self.go_to_signup).pack(pady=5)
+
+        def login(self):
+            email = self.email_entry.get()
+            password = self.password_entry.get()
+            if not email or not password:
+                messagebox.showerror("Error")
+                return
