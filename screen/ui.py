@@ -46,3 +46,61 @@ def setup (root):
                     background=BG, foreground=MUTED, borderwidth=0),
     style.map("TNotebook.Tab",background=[("selected", CARD)],
      foreground=[("selected", PRIMARY)])
+
+def card(parent, padx=40, pady=30):
+     """A white panel to hold a screen's content."""
+     return tk.Frame(parent, bg=CARD, padx=padx, pady=pady, highlightbackground=BORDER, highlightedthickness=1)
+
+def accent_bar(parent):
+    """Thin brand-colored strip across the top of a card."""
+    return tk.Frame(parent,bg=PRIMARY,height=4)
+
+def logo(parent, emoji="placeholder"):
+    return tk.Label(parent, text=emoji, bg=CARD, fg=PRIMARY, font=(FONT,30))
+
+def title(parent, text, anchor="center"):
+    return tk.Label(parent, text=text, bg=CARD, fg=TEXT, font=(FONT,22,"bold"), anchor=anchor)
+
+
+def subtitle(parent, text, anchor="center"):
+    return tk.Label(parent, text=text, bg=CARD, fg=MUTED, font=(FONT,22,"bold"), anchor=anchor)
+
+def field_label(parent,text):
+    return tk.Label(parent, text=text, bg=CARD, fg=TEXT, font=(FONT,10,"bold"), anchor="w")
+
+
+def entry(parent, show=None):
+    return ttk.Entry(parent, width=34, show=show, font=(FONT,10,"bold"))
+
+
+def primary_button(parent, text, command):
+    return ttk.Button(parent, width=34, text=text, command=command, style="Primary.TButton")
+
+
+def button(parent, text, command):
+    return ttk.Button(parent, width=34, text=text, command=command, style="Seconday.TButton")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
