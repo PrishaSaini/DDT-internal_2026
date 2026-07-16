@@ -1,5 +1,7 @@
 import tkinter as tk
 from tkinter import messagebox
+from DDT.database.db_connection import get_connection
+
 
 class LoginScreen:
     def __init__(self, root):
@@ -27,3 +29,43 @@ class LoginScreen:
             if not email or not password:
                 messagebox.showerror("Error")
                 return
+            
+            conn = get_connection()
+            if conn is None:
+                messagebox.showerror("Database Error", "Could not connect to Databse.")
+                return
+            try: 
+                    cursor = conn.cursor()
+                    sql="""
+                    SELECT * FROM Users
+                    WHERE SchoolEmail = ? AND [Password]= ? AND AccountStatus =?
+                    """
+                    cursor.execute (sql, email, password, "Active")
+                    user = cursor.fetchone ()
+
+                    if user:
+                         current_user ={
+                              "id": user.UserID,
+                              "name": user.FirstName,
+                              "role": user.Role
+                         }
+
+                         self.frame.destroy()
+                         from DDT.screen.dashboard import DashboardScreen
+                         DashboardScreen(self.root, current_user)
+                        else:
+                         messagebox,showerror("Login Failed", "Invalid email or password.")
+                        
+            except Exception as e:
+                 messagebox.showerror("Error", f"Login failed (e)")
+
+            finally:
+                 conn.close()
+            
+    def got_to_singup(self):
+         self.frame.detroy()
+         from DDT.screen.signup_screen import SignupScreen
+         SignupScreen(self.root)
+
+
+                     
