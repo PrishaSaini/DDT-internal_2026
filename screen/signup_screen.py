@@ -1,6 +1,10 @@
 import tkinter as tk
 from tkinter import messagebox
 from datetime import datetime
+from helper import *
+from db_connection import *
+fom ui import *
+
 
 class SignupScreen:
 
@@ -45,3 +49,19 @@ class SignupScreen:
             messagebox.showerror("Error", "Please fill in all required fields.")
 
         return
+    
+    if not is_valid_email(email):
+        messagebox.shoerror("Error", "Please enter a valid school email address")
+
+        return
+    conn = get_connection()
+
+    if conn is None:
+        messagebox.shoerror("Error", "Couldn't connect to Database")
+        return
+try:
+    cursor = conn.cursors()
+
+        
+
+ 
