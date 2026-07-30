@@ -11,13 +11,13 @@ def row_dict (cursor, row):
 
 def get_connection():
     try:
-        import pyodbc
+    
         conn= pyodbc.connect(
-            r"DRIVER={Microsoft Access Driver(*.mdb, *.accdb)};"
+            r"DRIVER={Microsoft Access Driver (*.mdb, *.accdb)};"
             f"DBQ={DB_PATH};"
         )
         print("Connected to database successfully")
         return conn
     except Exception as e:
-        print("Connection failled:",e)
+        print("Connection failed:",e)
         return None

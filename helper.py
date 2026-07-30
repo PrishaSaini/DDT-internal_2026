@@ -3,7 +3,7 @@ import hashlib
 import hmac
 import secrets
 from collections import Counter
-EMAIL_RE = re.compile(r"^[^[^[\s@]+@[^\s@]+\.[^\s@]+$ ")
+EMAIL_RE = re.compile(r"^[^\s@]+@[^\s@]+\.[^\s@]+$")
 
 def is_valid_email(email):
     return bool(EMAIL_RE.match(email.strip()))
@@ -32,12 +32,12 @@ def hash_password(password):
 def fmt_price(price):
     if not price: 
         return "Donation"
-    else: f"{price:.2f}"
+    return f"${price:.2f}"
 
 def status_counts(rows, order):
     """'2 pending  .  1 active  . 3 sold'summary line for a row list."""
     counts = Counter(r.get("status") for r in rows)
-    return "  .  ".join(f"{counts.get(s,0)} {s}" for s in order)
+    return "   .   ".join(f"{counts.get(s,0)} {s}" for s in order)
 
     
 
@@ -54,12 +54,12 @@ if __name__=="__main__":
     assert parse_price("-1") is None
     assert parse_price("free") is None
     stored = hash_password("qwert12")
-    assert len(stored) <= 100 and verify_password("abcd123",stored)
+    assert len(stored) <= 100 and verify_password("qwert12",stored)
     assert not verify_password("wrong", stored)
-    assert verify_password("plain," "plain")
-    assert fmt_price(0) == "Donation" and fmt_price(None)
-    assert fmt_price(12.) == "$12.50"
+    assert verify_password("plain", "plain")
+    assert fmt_price(0) == "Donation" and fmt_price(None) =="Donation"
+    assert fmt_price(12.5) == "$12.50"
     assert status_counts([{"status": "sold"}, {"status": "sold"}, {"status": "pending"}],
                          ("pending", "sold")) == "1 pending   ·   2 sold"
     print("helper self-check OK")
-    
+
