@@ -1,6 +1,6 @@
 import tkinter as tk
 from tkinter import messagebox
-from DDT.database.db_connection import get_connection
+from database.db_connection import get_connection
 
 
 class LoginScreen:
@@ -22,12 +22,11 @@ class LoginScreen:
 
         tk.Button(self.frame, text="Login", command=self.login).pack(pady=10)
         tk.Button(self.frame, text="Go to Sign Up", command=self.go_to_signup).pack(pady=5)
-
-        def login(self):
+    def login(self):
             email = self.email_entry.get()
             password = self.password_entry.get()
             if not email or not password:
-                messagebox.showerror("Error")
+                messagebox.showerror("Error","Enter email and password please")
                 return
             
             conn = get_connection()
@@ -51,20 +50,20 @@ class LoginScreen:
                          }
 
                          self.frame.destroy()
-                         from DDT.screen.dashboard import DashboardScreen
+                         from screen.dashboard import DashboardScreen
                          DashboardScreen(self.root, current_user)
-                        else:
-                         messagebox,showerror("Login Failed", "Invalid email or password.")
+                    else:
+                         messagebox.showerror("Login Failed", "Invalid email or password.")
                         
             except Exception as e:
-                 messagebox.showerror("Error", f"Login failed (e)")
+                 messagebox.showerror("Error", f"Login failed: {e}")
 
             finally:
                  conn.close()
             
-    def got_to_singup(self):
-         self.frame.detroy()
-         from DDT.screen.signup_screen import SignupScreen
+    def go_to_signup(self):
+         self.frame.destroy()
+         from screen.signup_screen import SignupScreen
          SignupScreen(self.root)
 
 

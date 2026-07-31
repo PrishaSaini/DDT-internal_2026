@@ -81,7 +81,7 @@ class SignupScreen:
             cursor = conn.cursor()
 
             cursor.execute(
-                "SELECT id FROM students WHERE email =%s",(email,)
+                "SELECT UserID FROM Users WHERE SchoolEmail =?",(email,)
             )
 
             if cursor.fetchone():
@@ -91,17 +91,19 @@ class SignupScreen:
                 )
                 return
             insert_query="""
-                    INSERT INTO students (first_name, last_name, email, password, phone)
+                    INSERT INTO Users (FirstName, LastName, SchoolEmail, [Password], PhoneNumber, Role, AccountStatus)
                     VALUES 
-                (%s, %s, %s,%s, %s)
+                (?, ?, ?, ?, ?, ?, ?)
                 """
             cursor.execute(
                 insert_query, 
-             (first_name,
+                (first_name,
                 last_name,
                 email,
                 password,
-                 phone or None)
+                 phone or None,
+                 "Student",
+                 "Active")
             )
 
             conn.commit()

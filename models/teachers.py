@@ -10,5 +10,5 @@ class Teacher:
     subject: str
     address: str
     password: str
-    created_at:str
+    created_at:datetime
     updated_at: datetime
