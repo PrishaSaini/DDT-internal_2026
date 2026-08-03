@@ -1,3 +1,4 @@
+#This file is for screen allwoing users to login to prgram
 import tkinter as tk
 from tkinter import messagebox
 from database.db_connection import get_connection
@@ -6,7 +7,7 @@ from database.db_connection import get_connection
 class LoginScreen:
     def __init__(self, root):
         self.root = root
-
+# frame groups all login together
         self.frame = tk.Frame(root) 
         self.frame.pack(pady=50)
 
@@ -22,6 +23,8 @@ class LoginScreen:
 
         tk.Button(self.frame, text="Login", command=self.login).pack(pady=10)
         tk.Button(self.frame, text="Go to Sign Up", command=self.go_to_signup).pack(pady=5)
+
+   #This is for login and checks details against the database account"""
     def login(self):
             email = self.email_entry.get()
             password = self.password_entry.get()
@@ -44,7 +47,7 @@ class LoginScreen:
 
                     if user:
                          current_user ={
-                              "id": user.UserID,
+                              "id": user["UserID"],
                               "name": user.FirstName,
                               "role": user.Role
                          }
@@ -60,6 +63,8 @@ class LoginScreen:
 
             finally:
                  conn.close()
+
+#Changes login screen to signup SCreen
             
     def go_to_signup(self):
          self.frame.destroy()

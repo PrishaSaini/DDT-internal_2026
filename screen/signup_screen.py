@@ -1,7 +1,9 @@
+#This file shows screeb which collects and chgecls the information for signup of an account
 import tkinter as tk
 from tkinter import messagebox
 from helper import is_valid_email
 from database.db_connection import get_connection
+from datetime import datetime
 
 
 
@@ -39,6 +41,7 @@ class SignupScreen:
 
         
 
+#Collects the forms values, validates them and saves the account
     def signup(self):
         first_name = self.first_name_entry.get().strip()
         last_name = self.last_name_entry.get().strip()
@@ -91,9 +94,9 @@ class SignupScreen:
                 )
                 return
             insert_query="""
-                    INSERT INTO Users (FirstName, LastName, SchoolEmail, [Password], PhoneNumber, Role, AccountStatus)
+                    INSERT INTO Users (FirstName, LastName, SchoolEmail, Password, PhoneNumber, Role, AccountStatus)
                     VALUES 
-                (?, ?, ?, ?, ?, ?, ?)
+                (?, ?, ?, ?, ?, ?, ?,?)
                 """
             cursor.execute(
                 insert_query, 
@@ -103,7 +106,8 @@ class SignupScreen:
                 password,
                  phone or None,
                  "Student",
-                 "Active")
+                 "Active",
+                 datetime.now().isoformat())
             )
 
             conn.commit()
@@ -123,9 +127,8 @@ class SignupScreen:
             if cursor is not None:
                 cursor.close()
 
-        if conn is not None:
-            conn.close()
-
+        
+#Return back to login screen
     def go_to_login(self):
         from screen.login_screen import LoginScreen
 
