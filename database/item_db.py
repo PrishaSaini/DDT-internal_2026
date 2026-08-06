@@ -42,7 +42,7 @@ def list_items(search="",exclude_seller=None):
         return[]
     try:
         sql ="SELECT * FROM Items WHERE Status IN ('pending','active')"
-        params[]
+        params=[]
         if search:
             sql+="AND (itemsName LIKE ? OR Category LIKE ?)"
             params+=["%"+search+"%"]*2
@@ -83,7 +83,7 @@ def all_items():
     finally:
         conn.close()
 
-def all_order():
+def all_orders():
     conn = get_connection()
     if conn is None:
         return[]
@@ -94,24 +94,25 @@ def all_order():
     finally:
         conn.close()
 
-def reserve_item(item_id, buyer_id, paymet, pickup):
-    conn= get_connection(
-        if conn is None:
+def reserve_item(item_id, buyer_id, payment, pickup):
+    conn= get_connection()
+    if conn is None:
         return False
-        try:
+    try:
         cursor = conn.cursor()
         cursor.execute(
-            "UPDATE Items SET Status='reserved' WHERE ItemID =? NAD Status IN ('pending,'active)",
-                (items_id,))
-            if cursor.rowcount ==0;
+            "UPDATE Items SET Status='reserved' WHERE ItemID =? NAD Status IN ('pending,'active)"
+            (item_id))
+        if cursor.rowcount ==0:
             conn.rollback()
-            return Falsecursor.execite("""INSERT INTO Orders (ItemsID, BuyerID, Paymnet, Pickup, Status, DateCreated)VALUES ( ?,?,?,?,?,?)""",
+            return False 
+        cursor.execute("""INSERT INTO Orders (ItemsID, BuyerID, Paymnet, Pickup, Status, DateCreated)VALUES ( ?,?,?,?,?,?)""",
                                        (item_id, buyer_id, payment, pickup, "reserved", now()))
-                                       conn.commit()
-                                       return True
-        finally:
+        conn.commit()
+        return True
+    finally:
         conn.close()
-        )
+        
     
 
 

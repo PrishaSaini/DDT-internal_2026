@@ -93,13 +93,13 @@ class SignupScreen:
                     "An account with this email already exists."
                 )
                 return
-            insert_query="""
-                    INSERT INTO Users (FirstName, LastName, SchoolEmail, Password, PhoneNumber, Role, AccountStatus)
+            sql ="""
+                    INSERT INTO Users (FirstName, LastName, SchoolEmail, Password, PhoneNumber, Role, AccountStatus, DateCreated)
                     VALUES 
                 (?, ?, ?, ?, ?, ?, ?,?)
                 """
             cursor.execute(
-                insert_query, 
+                sql, 
                 (first_name,
                 last_name,
                 email,
@@ -116,16 +116,13 @@ class SignupScreen:
                 "Your account was created created succesfully."
         )
             self.go_to_login()
-        except Exception as error:
-            if conn is not None:
-             conn.rollback()
+        except Exception as e:
             messagebox.showerror(
         "Database Error",
-        f"Could not create the accound.\n\n{error}"
+        f"Could not create the accound.\n\n{e}"
         )
         finally:
-            if cursor is not None:
-                cursor.close()
+                conn.close()
 
         
 #Return back to login screen
