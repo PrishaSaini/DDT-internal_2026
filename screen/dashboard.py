@@ -25,9 +25,11 @@ class DashboardScreen:
    def _go(self,screen_cls):
        self.frame.destroy()
        screen_cls(self.root, self.user)
+
    def catalogue(self):
-      from screen.catalouge import CatalogueScreen
+      from screen.catalogue import CatalogueScreen
       self._go(CatalogueScreen)
+
    def list_item(self):
        from screen.list_item import ListItemScreen
        self._go(ListItemScreen)
@@ -37,15 +39,13 @@ class DashboardScreen:
        self._go(MyOrdersScreen)
 
    def my_listings(self):
-          from screen.tables import MyListingsScreen
-          self._go(MyListingsScreen)
+         from screen.tables import MyListingsScreen
+         self._go(MyListingsScreen)
 
    def admin(self):
       from screen.tables import AdminScreen
       self._go(AdminScreen)
     
-
-
    def logout(self):
         self.frame.destroy()
         from screen.login_screen import LoginScreen

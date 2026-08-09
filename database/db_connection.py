@@ -11,28 +11,39 @@ DB_PATH=os.environ.get("SECONDHAND_DB", str(DEFAULT_DB_PATH))
 
 SCHEMA ="""
 CREATE TABLE IF NOT EXISTS Users (
-UserID        INTEGER PRIMARY KEY AUTOINCREMENT,
-FirstName     TEXT NOT NULL,
-LastName      TEXT NOT NULL,
-SchoolEmail   TEXT NOT NULL UNIQUE COLLATE NOCASE,
-Password      TEXT NOT NULL, 
-PhoneNumber   TEXT,
-Role          TEXT NOT NULL DEFAULT 'Student',
-AccountStatus TEXT NOT NULL DEFAULT 'Active',
-DateCreated   TEXT NOT NULL
+    UserID        INTEGER PRIMARY KEY AUTOINCREMENT,
+    FirstName     TEXT NOT NULL,
+    LastName      TEXT NOT NULL,
+    SchoolEmail   TEXT NOT NULL UNIQUE COLLATE NOCASE,
+    Password      TEXT NOT NULL, 
+    PhoneNumber   TEXT,
+    Role          TEXT NOT NULL DEFAULT 'Student',
+    AccountStatus TEXT NOT NULL DEFAULT 'Active',
+    DateCreated   TEXT NOT NULL
 );
-CREATE TABLE IF NOT EXISTS Item (
-ItemID        INTEGER PRIMARY KEY AUTOINCREMENT,
-ItemName      TEXT NOT NULL,
-Category      TEXT,
-ItemSize      TEXT, 
-Condition     TEXT NOT NULL, 
-Price         REAL,
-ListingType   TEXT,
-Status        TEXT NOT NULL DEFAULT 'pending',
-SellerID      INTEGER REFERENCES Users(UserID),
-PhotoPath     TEXT,
-DateCreated   TEXT NOT NULL
+CREATE TABLE IF NOT EXISTS Items (
+    ItemID        INTEGER PRIMARY KEY AUTOINCREMENT,
+    ItemsName     TEXT NOT NULL,
+    Category      TEXT,
+    ItemSize      TEXT, 
+    Condition     TEXT NOT NULL, 
+    Price         REAL,
+    ListingType   TEXT,
+    Status        TEXT NOT NULL DEFAULT 'pending',
+    SellerID      INTEGER REFERENCES Users(UserID),
+    PhotoPath     TEXT,
+    DateCreated   TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS Orders (
+    OrderID       INTEGER PRIMARY KEY AUTOINCREMENT,
+    ItemID        INTEGER REFERENCES Items(ItemID),
+    BuyerID      INTEGER REFERENCES Users(UserID),
+    ItemSize      TEXT, 
+    Payment       TEXT NOT NULL, 
+    Pickup        TEXT NOT NULL,
+    ListingType   TEXT NOT NULL,
+    Status        TEXT NOT NULL DEFAULT 'reserved',
+    DateCreated   TEXT NOT NULL
 );
 
 

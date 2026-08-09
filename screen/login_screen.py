@@ -2,31 +2,34 @@
 import tkinter as tk
 from tkinter import messagebox
 from database.db_connection import get_connection
+from screen import ui
+from helper import verify_password
+
 
 
 class LoginScreen:
     def __init__(self, root):
         self.root = root
+        self.root.configure(bg="#F0F5F6")
 # frame groups all login together
-        self.frame = tk.Frame(root) 
+        self.frame = ui.card(root)
         self.frame.pack(pady=50)
+        self.frame.configure(width=450, height=450)
+        self.frame.pack_propagate(False)
 
-        tk.Label(self.frame, text="Login", font=("Arial", 16)).pack(pady=10)
-        
+        tk.Label(self.frame, text="Macleans SecondHand Shop", font=("Arial", 15, "bold"), bg="white", fg="navy").pack(pady=15)
         tk.Label(self.frame, text="Email").pack() 
-        self.email_entry = tk.Entry(self.frame)
+        self.email_entry = tk.Entry(self.frame, font=("Arial", 14),width=20)
         self.email_entry.pack()
         
         tk.Label(self.frame, text="Password").pack() 
-        self.password_entry = tk.Entry(self.frame, show="*")
+        self.password_entry = tk.Entry(self.frame, show="*" ,font=("Arial", 14),width=20)
         self.password_entry.pack()
 
-        tk.Button(self.frame, text="Login", command=self.login).pack(pady=10)
-        tk.Button(self.frame, text="Go to Sign Up", command=self.go_to_signup).pack(pady=5)
-
-   #This is for login and checks details against the database account"""
+        tk.Button(self.frame, text="Login", command=self.login,  font=("Arial", 11), bg="#0B2E59", fg="white" ,width=20, height=1, relief="flat", bd=0).pack(pady=(15,10))
+        tk.Button(self.frame, text="Create account", command=self.go_to_signup, font=("Arial", 11),  bg="#0B2E59", fg="white" ,width=20, height=1, relief="flat", bd=0).pack(pady=(15,10))
     def login(self):
-            email = self.email_entry.get()
+            email = self.email_entry.get().strip()
             password = self.password_entry.get()
             if not email or not password:
                 messagebox.showerror("Error","Enter email and password please")
@@ -40,16 +43,16 @@ class LoginScreen:
                     cursor = conn.cursor()
                     sql="""
                     SELECT * FROM Users
-                    WHERE SchoolEmail = ? AND [Password]= ? AND AccountStatus =?
+                    WHERE SchoolEmail = ? AND AccountStatus =?
                     """
-                    cursor.execute (sql, email, password, "Active")
+                    cursor.execute (sql, (email, "Active"))
                     user = cursor.fetchone ()
 
-                    if user:
+                    if user and verify_password(password, user["Password"]):
                          current_user ={
                               "id": user["UserID"],
-                              "name": user.FirstName,
-                              "role": user.Role
+                              "name": user["FirstName"],
+                              "role": user["Role"],
                          }
 
                          self.frame.destroy()
