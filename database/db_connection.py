@@ -37,10 +37,11 @@ CREATE TABLE IF NOT EXISTS Items (
 CREATE TABLE IF NOT EXISTS Orders (
     OrderID       INTEGER PRIMARY KEY AUTOINCREMENT,
     ItemID        INTEGER REFERENCES Items(ItemID),
-    BuyerID      INTEGER REFERENCES Users(UserID),
+    BuyerID       INTEGER REFERENCES Users(UserID),
     ItemSize      TEXT, 
     Payment       TEXT NOT NULL, 
     Pickup        TEXT NOT NULL,
+    PickupNotes   TEXT,
     ListingType   TEXT NOT NULL,
     Status        TEXT NOT NULL DEFAULT 'reserved',
     DateCreated   TEXT NOT NULL
@@ -49,9 +50,12 @@ CREATE TABLE IF NOT EXISTS Orders (
 
 """
 
-
-
-"""This function actually connects the db to Access databse   """
+def _add_missing_columns(conn):
+    """CREATE TABLE IF NOT EXISTS won't add a column to a table that already exists, so bring older secondhand.db files up to date without losing rows."""
+    columns ={r[1] for r in conn.execute("PRAGMA table_info(Orders)")}
+    if columns and "PickupNotes" not in columns:
+        conn.execute("Alter Table Orders ADD COLUMN PickupNotes TEXT")
+        conn.commit()
 def get_connection():
     #Starts error handling if the connection fials 
     try:

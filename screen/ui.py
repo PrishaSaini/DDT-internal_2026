@@ -32,7 +32,7 @@ def setup (root):
                     background=CARD, foreground=PRIMARY, padding=(14,11), borderwidth=1, focuscolor=CARD
                     )
     
-    style.map("Secondary.TButton", background=[("active", PRIMARY_DK), ("pressed",PRIMARY_DK)])
+    style.map("Secondary.TButton", background=[("active", PRIMARY_LT), ("pressed",PRIMARY_LT)])
 
     style.configure("TEntry", font =(FONT,10),
                     fieldbackground=CARD, foreground=TEXT, padding=8, borderwidth=1, focuscolor=CARD
@@ -46,6 +46,24 @@ def setup (root):
                     background=BG, foreground=MUTED, borderwidth=0)
     style.map("TNotebook.Tab",background=[("selected", CARD)],
      foreground=[("selected", PRIMARY)])
+    style.configure("Treeview", 
+                    background=CARD,
+                    fieldbackground=CARD,
+                    foreground=TEXT,
+                    font=(FONT,10),
+                    rowheight=26,
+                    bordercolor=BORDER,
+                    lightcolor=BORDER,
+                    darkcolor=BORDER)
+    style.configure("Treeview.Heading",
+                    font=(FONT, 10, "bold"),
+                    background=FIELD,
+                    foreground=MUTED,
+                    relief="flat",
+                    padding=6)
+    style.map("Treeview", 
+              background=[("selected", PRIMARY)],
+              forground=[("selected", "white")])
 
 def card(parent, padx=40, pady=30):
      """A white panel to hold a screen's content."""
@@ -63,14 +81,14 @@ def title(parent, text, anchor="center"):
 
 
 def subtitle(parent, text, anchor="center"):
-    return tk.Label(parent, text=text, bg=CARD, fg=MUTED, font=(FONT,11,"bold"), anchor=anchor)
+    return tk.Label(parent, text=text, bg=CARD, fg=MUTED, font=(FONT,11), anchor=anchor)
 
 def field_label(parent,text):
     return tk.Label(parent, text=text, bg=CARD, fg=TEXT, font=(FONT,10,"bold"), anchor="w")
 
 
-def entry(parent, show=None):
-    return ttk.Entry(parent, width=34, show=show, font=(FONT,10,"bold"))
+def entry(parent, show=None, width=34):
+    return ttk.Entry(parent, width=34, show=show, font=(FONT,10))
 
 
 def primary_button(parent, text, command):
@@ -80,27 +98,12 @@ def primary_button(parent, text, command):
 def button(parent, text, command):
     return ttk.Button(parent, width=34, text=text, command=command, style="Secondary.TButton")
 
+def muted_label(parent, text):
+    return tk.Label(parent, text=text, bg=CARD, fg= MUTED, font=(FONT,10))
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+def table(parent,headings,widths, height=8):
+    tree=ttk.Treeview(parent, columns=headings, show="headings",height=height)
+    for h, w in zip(headings,widths):
+        tree.heading(h, text=h)
+        tree.column(h,width=w)
+        return tree
