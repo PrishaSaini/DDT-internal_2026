@@ -3,31 +3,38 @@ import tkinter as tk
 from tkinter import messagebox
 from database.db_connection import get_connection
 from screen import ui
-from helper import verify_password
+from helper import verify_password, hash_password
 
 
 
 class LoginScreen:
     def __init__(self, root):
         self.root = root
-        self.root.configure(bg="#F0F5F6")
-# frame groups all login together
+       
         self.frame = ui.card(root)
         self.frame.pack(pady=50)
-        self.frame.configure(width=450, height=450)
-        self.frame.pack_propagate(False)
+       
+        ui.accent_bar(self.frame).pack( fill="x", pady=(0,15))
+        ui.logo(self.frame,"♻" ).pack()
+        ui.title(self.frame, "Macleans Second Hand Shop").pack()
+        ui.subtitle(self.frame, "Sign in to continue").pack(pady=(2,18))
 
-        tk.Label(self.frame, text="Macleans SecondHand Shop", font=("Arial", 15, "bold"), bg="white", fg="navy").pack(pady=15)
-        tk.Label(self.frame, text="Email").pack() 
-        self.email_entry = tk.Entry(self.frame, font=("Arial", 14),width=20)
-        self.email_entry.pack()
+        ui.field_label(self.frame, text="Email").pack(fill="x") 
+        self.email_entry = ui.entry(self.frame)
+        self.email_entry.pack(pady=(2,10))
+
+        ui.field_label(self.frame, text="Password").pack(fill="x") 
+        self.email_entry = ui.entry(self.frame, show="*")
+        self.email_entry.pack(pady=(2,18))
+      
+
+        ui.primary_button(self.frame, "Login", self.login).pack()
+        ui.button(
+             self.frame,
+             "Go to Sign Up",
+             self.go_to_signup
+        ).pack(pady=(8,0))
         
-        tk.Label(self.frame, text="Password").pack() 
-        self.password_entry = tk.Entry(self.frame, show="*" ,font=("Arial", 14),width=20)
-        self.password_entry.pack()
-
-        tk.Button(self.frame, text="Login", command=self.login,  font=("Arial", 11), bg="#0B2E59", fg="white" ,width=20, height=1, relief="flat", bd=0).pack(pady=(15,10))
-        tk.Button(self.frame, text="Create account", command=self.go_to_signup, font=("Arial", 11),  bg="#0B2E59", fg="white" ,width=20, height=1, relief="flat", bd=0).pack(pady=(15,10))
     def login(self):
             email = self.email_entry.get().strip()
             password = self.password_entry.get()
@@ -39,6 +46,16 @@ class LoginScreen:
             if conn is None:
                 messagebox.showerror("Database Error", "Could not connect to Databse.")
                 return
+            current_user=None
+            if ":" not in (user["Passowrd"] or ""):
+                 cursor.execute(
+                      "UPDATE Users SET Password = ? WHERE UserID = ?", 
+                      (
+                           hash_password(password),
+                           user["UserID"]
+                      )
+                 )
+                 conn.commit()
             try: 
                     cursor = conn.cursor()
                     sql="""
@@ -55,9 +72,7 @@ class LoginScreen:
                               "role": user["Role"],
                          }
 
-                         self.frame.destroy()
-                         from screen.dashboard import DashboardScreen
-                         DashboardScreen(self.root, current_user)
+                         
                     else:
                          messagebox.showerror("Login Failed", "Invalid email or password.")
                         
@@ -66,6 +81,10 @@ class LoginScreen:
 
             finally:
                  conn.close()
+                 if current_user:
+                      self.frame.destroy()
+                      from screen.dashboard import DashboardScreen
+                      DashboardScreen(self.root, current_user)
 
 #Changes login screen to signup SCreen
             

@@ -1,9 +1,10 @@
 #This file shows screeb which collects and chgecls the information for signup of an account
 import tkinter as tk
 from tkinter import messagebox
-from helper import is_valid_email
+from helper import is_valid_email, hash_password, MIN_PASSWORD_LEN
 from database.db_connection import get_connection
 from datetime import datetime
+from screen import ui
 
 
 
@@ -11,33 +12,32 @@ class SignupScreen:
 
     def __init__(self, root):
         self.root = root
-
-        self.frame = tk.Frame(root)
+        self.frame = ui.card(root, padx=32, pady=24)
         self.frame.pack(pady=20)
 
-        tk.Label(self.frame, text="Sign Up", font=("Arial", 18, "bold")).pack(pady=(0,20))
-        tk.Label(self.frame, text="First Name").pack()
-        self.first_name_entry = tk.Entry(self.frame, width=30)
-        self.first_name_entry.pack(pady=10)
+        ui.accent_bar(self.frame.pack(fill="x", pady=(0,12)))
+        ui.title(self.frame, "Sign Up").pack()
+        ui.subtitle(self.frame, "Create yout student account").pack(pady=(2,14))
 
-        tk.Label(self.frame, text="Last Name").pack()
-        self.last_name_entry = tk.Entry(self.frame, width=30)
-        self.last_name_entry.pack(pady=10)
+        self.first_name_entry = self._field("First Name")
+        self.last_name_entry = self._field("Last Name")
+        self.email_entry = self._field("School Email")
+        self.password_enrty = self._field("Password", show ="*")
+        self.phone_entry = self._field("Fhone Number")
+    def _field(self, label, show=None):
+        ui.field_label(self.frame, label).pack(fill="x")
+        e=ui.entry(self.frame, show=show)
+        e.pack(pady=(2,8))
 
-        tk.Label(self.frame, text="School Email").pack()
-        self.email_entry = tk.Entry(self.frame, width=30)
-        self.email_entry.pack(pady=10)
+        ui.primary_button(
+            self.frame, 
+            "Create Account",
+            self.signup
+        ).pack(pady=(14,0))
 
-        tk.Label(self.frame, text="Password").pack()
-        self.password_entry = tk.Entry(self.frame, width=30, show="*")
-        self.password_entry.pack(pady=10)
-
-        tk.Label(self.frame, text="Phone Number").pack()
-        self.phone_number_entry = tk.Entry(self.frame, width=30)
-        self.phone_number_entry.pack(pady=10)
-
-        tk.Button(self.frame, text="Create Account", command=self.signup).pack(pady=20)
-        tk.Button(self.frame, text="Back to Login", command=self.go_to_login).pack(pady=20)
+        ui.button (self.frame, 
+    "Back to Login",
+    self.go_to_login).pack(pady=(8, 0))
 
         
 
@@ -45,9 +45,9 @@ class SignupScreen:
     def signup(self):
         first_name = self.first_name_entry.get().strip()
         last_name = self.last_name_entry.get().strip()
-        email = self.email_entry.get().strip().lower()
+        email = self.email_entry.get().strip()
         password = self.password_entry.get()
-        phone = self.phone_number_entry.get().strip()
+        phone = self.phone_entry.get().strip()
     
         if not first_name or not last_name or not email or not password:
             messagebox.showerror(
@@ -60,10 +60,10 @@ class SignupScreen:
         if not is_valid_email(email):
             messagebox.showerror("Error", "Please enter a valid school email address")
             return
-        if len(password) <6:
+        if len(password) <MIN_PASSWORD_LEN:
             messagebox.showerror(
                 "Error",
-                "passowrd must contain at leats 6 characters."
+                f"passowrd must contain at least {MIN_PASSWORD_LEN} characters"
             )
             return
         if phone and not phone.isdigit():
@@ -72,17 +72,14 @@ class SignupScreen:
                 "Phone number must contain digits only."
             )
             return
-        conn = None
-        cursor = None
+        
+        conn=get_connection()
+        if conn is None:
+            messagebox.showerror("Error", "Couldn't connect to Database")
+            return
         try:
-            conn=get_connection()
-
-            if conn is None:
-                messagebox.showerror("Error", "Couldn't connect to Database")
-                return
     
             cursor = conn.cursor()
-
             cursor.execute(
                 "SELECT UserID FROM Users WHERE SchoolEmail =?",(email,)
             )
@@ -103,11 +100,11 @@ class SignupScreen:
                 (first_name,
                 last_name,
                 email,
-                password,
-                 phone or None,
+               hash_password(password),
+                 phone,
                  "Student",
                  "Active",
-                 datetime.now().isoformat())
+                 datetime.now().isoformat(" ", "seconds"))
             )
 
             conn.commit()
@@ -119,7 +116,7 @@ class SignupScreen:
         except Exception as e:
             messagebox.showerror(
         "Database Error",
-        f"Could not create the accound.\n\n{e}"
+        f"Signup fauiled {e}"
         )
         finally:
                 conn.close()
@@ -127,9 +124,9 @@ class SignupScreen:
         
 #Return back to login screen
     def go_to_login(self):
-        from screen.login_screen import LoginScreen
 
         self.frame.destroy()
+        from screen.login_screen import LoginScreen
         LoginScreen(self.root)
 
         

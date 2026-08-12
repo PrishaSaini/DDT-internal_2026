@@ -1,25 +1,30 @@
 #This file is the mian menu shown after the uswer logs in
 import tkinter as tk
+from screen import ui
 
 class DashboardScreen:
    def __init__(self, root, user=None):
      self.root= root
      self.user = user if isinstance(user, dict) else{"id":None,"name": user, "role":""}
      name =self.user.get("name")or "User"
+     role = self.user.get("role") or "Student"
     
-     self.frame=tk.Frame(root)
-     self.frame.pack(pady=30)
+     self.frame=ui.card(root, padx=36, pady=28)
+     self.frame.pack(pady=40)
 
-     tk.Label(self.frame, text =f"Welcome, {name}!",font=("Arial",14)).pack(pady=10)
-     tk.Label(self.frame,text ="Dashboard",font=("Arial",20, "bold")).pack(pady=10)
+     ui.accent_bar(self.frame).pack(fill="x", pady=(0,14))
+     ui.logo(self.frame, "♻").pack()
+
+     ui.subtitle(self.frame, text =f"Welcome, {name}  .  {role}!").pack()
+     ui.title(self.frame,text ="Dashboard").pack()
      tk.Label(self.frame,text ="You have successfully logged in",).pack(pady=10)
-     tk.Button(self.frame,text="Browse Catalogue",width=30,command=self.catalogue).pack(pady=10)
-     tk.Button(self.frame,text="List an Item",width=30,command=self.list_item).pack(pady=10)
-     tk.Button(self.frame,text="My Listings",width=30,command=self.my_listings).pack(pady=10)
-     tk.Button(self.frame,text="My Orders",width=30,command=self.my_orders).pack(pady=10)
+     ui.primary_button(self.frame, "Browse Catalogue", self.catalogue).pack(pady=4)
+     ui.button(self.frame, "List an Item", self.list_item).pack(pady=4)
+     ui.button(self.frame,"My Listings", self.my_listings).pack(pady=4)
+     ui.button(self.frame,"My Orders",self.my_orders).pack(pady=4)
      if self.user.get("role")== "Admin":
-        tk.Button(self.frame,  text="Admin Dashboard", width=20, command=self.admin).pack(pady=4)
-        tk.Button(self.frame,text="Logout" ,command=self.logout,).pack(pady=20)
+        ui.Button(self.frame,  text="Admin Dashboard", width=20, command=self.admin).pack(pady=4)
+     ui.Button(self.frame,text="Logout" ,command=self.logout,).pack(pady=(16,0))
 
 
    def _go(self,screen_cls):
@@ -50,5 +55,3 @@ class DashboardScreen:
         self.frame.destroy()
         from screen.login_screen import LoginScreen
         LoginScreen(self.root)
-
-    
