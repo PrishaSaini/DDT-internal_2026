@@ -23,8 +23,8 @@ class DashboardScreen:
      ui.button(self.frame,"My Listings", self.my_listings).pack(pady=4)
      ui.button(self.frame,"My Orders",self.my_orders).pack(pady=4)
      if self.user.get("role")== "Admin":
-        ui.Button(self.frame,  text="Admin Dashboard", width=20, command=self.admin).pack(pady=4)
-     ui.Button(self.frame,text="Logout" ,command=self.logout,).pack(pady=(16,0))
+        ui.button(self.frame,  text="Admin Dashboard", width=20, command=self.admin).pack(pady=4)
+     ui.button(self.frame,text="Logout" ,command=self.logout,).pack(pady=(16,0))
 
 
    def _go(self,screen_cls):
