@@ -1,3 +1,4 @@
+"""Screens that show a table: My Listings, My Orders and Admin."""
 import tkinter as tk
 from tkinter import ttk, messagebox
 
@@ -8,44 +9,54 @@ from database.item_db import(my_listings,
                               all_items, 
                               all_users, 
                               set_account_status, 
-                              set_order_status
+                              set_order_status,
+                              get_item,
+                              STATUS_SOLD, STATUS_REJECTED, 
+                              ORDER_RESERVED, ORDER_READY, ORDER_COLLECTED, ORDER_CANCELLED,
+                              ACCOUNT_ACTIVE, ACCOUNT_DISABLED, STATUS_PENDING,ITEM_STATUS_ORDER,
+                              STATUS_ACTIVE, STATUS_RESERVED
                              )
 from helper import fmt_price, status_counts
 from screen import ui
+from models.records import Item, User, Order
+from models.review_queue import ReviewQueue
 
-ITEM_STATUSES =(
-    "pending",
-    "active", 
-    "reserved",
-    "sold",
-    "rejected",
-    "all"
+#The order teh statuses appera in on screen.
+ITEM_STATUS_ORDER=(
+    STATUS_PENDING, STATUS_ACTIVE, STATUS_RESERVED, STATUS_SOLD, STATUS_REJECTED
     )
+ORDER_STATUS_ORDER = (ORDER_RESERVED, ORDER_READY, ORDER_COLLECTED, ORDER_CANCELLED)
+#"all" is only a filter choice, never saved as a status.
+FILTER_ALL= "all"
+ITEM_STATUSES = ITEM_STATUS_ORDER +(FILTER_ALL,)
 
 def _table(parent, headings, rows, widths, iids=None, empty=""):
+    """Build a table. iids are the database ids so we know what was clicked."""
     tree =ui.table(parent, headings, widths)
+    for i, r in enumerate(rows):
+        tree.insert("", "end", iid=(str(iids[i]) if iids else None), values =r)
     if not rows and empty:
+        #Say why the table is empty instead of shwoing nothing.
         tree.insert(
             "", 
             "end",
             values=(empty,)+("",)*(len(headings)-1)
         )
-    for h, w in zip(headings, widths):
-        tree.heading(h, text=h)
-        tree.column(h, width=w)
-    for i, r in enumerate(rows):
-        tree.insert("", "end", iid=(str(iids[i]) if iids else None ),values=r)
     tree.pack(pady=8)
     return tree
+
 def _selected_id(tree):
+    """Id of the clicked row, or None."""
     selected = tree.selection()
     return int(selected[0] )if selected and selected[0].isdigit()else None
 
 
 class _BaseScreen:
+    """Shared layout for the table screens: card, title, Back and Logout."""
     title="" 
 
     def __init__(self,root,user):
+        """Draw the screen."""
         self.root = root
         self.frame = ui.card(root, padx=24, pady =20)
         self.user = user
@@ -69,43 +80,37 @@ class _BaseScreen:
         ).pack(side="left", padx=5)
 
     def logout(self):
+        """Log out """
         self.frame.destroy()
         from screen.login_screen import LoginScreen
         LoginScreen(self.root)
 
     def body(self):
+        """Each screen fills in its own middle part."""
         raise NotImplementedError
 
     def back(self):
+        """Go back to the dashboard."""
         self.frame.destroy()
         from screen.dashboard import DashboardScreen
         DashboardScreen(self.root, self.user)
 
 
 class MyListingsScreen(_BaseScreen):
+    """Everthing thus user has listed."""
     title="My Listings"
 
     def body(self):
+      """Shows the counts and the listing table."""
       listings = my_listings(self.user["id"])
 
-      ui.muted_label(
-          self.frame,
-          status_counts(
-              [
-              r["Status"] for r in listings],
-              ("pending", "active", "reserved", "sold", "rejected")
-              ).pack(pady=(0,10)))
-      rows = [
-          (
-              r["itemsName"],
-              r["Category"],
-              r["ItemSize"],
-              r["Condition"],
-              fmt_price(r["Price"], r["ListingType"]),
-              r["Status"]
-          )
-          for r in listings
-      ]
+      ui.muted_label(self.frame, status_counts(
+          [r["Status"] for r in listings],
+          ITEM_STATUS_ORDER)).pack(pady=(0,10))
+#Turn rows into Item objects so we can write i.name instead of a key
+      items = [Item.from_row(r) for r in listings]
+      rows = [(i.name, i.category, i.size, i.condition, 
+               fmt_price(i.price, i.listing_type), i.status) for i in items]
       _table(
           self.frame,
           ("Item", "category", "Size", "Condition", "Price", "Status"),
@@ -115,32 +120,22 @@ class MyListingsScreen(_BaseScreen):
       )
     
 class MyOrdersScreen(_BaseScreen):
+    """This is user's own reservations"""
     title ="My Orders"
 
     def body(self):
+      """Show the counts, the orders table and the cancel button."""
       self.orders = my_orders(self.user["id"])
+      ui.muted_label(self.frame, status_counts(
+          [r["Status"] for r in self.orders],
+          ORDER_STATUS_ORDER)).pack(pady=(0,10))
 
-      ui.muted_label(
-          self.frame, 
-          status_counts(
-              [r["Status"] for r in self.orders],
-              ("reserved", "ready", "collected", "cancelled")
-          )
-      ).pack(pady=(0,10))
+      rows = [(o.order_id, r["itemsname"], o.status, o.pickup,
+              o.payment, o.pickup_notes or "", fmt_price(r["Price"]))
+              for r, o in ((r, Order.from_row(r)) for r in self.orders)]
+    
 
-      rows=[
-          (
-           r["OrderID"],
-           r["itemsize"],
-           r["Status"],
-           r["Pickup"],
-           r["Payment"],
-           r["PickupNotes"] or "",
-           fmt_price(r["Price"])
-          )
       
-      for r in self.orders
-      ]
 
       self.tree =_table(
           self.frame, 
@@ -150,14 +145,10 @@ class MyOrdersScreen(_BaseScreen):
           iids =[r["OrderID"] for r in self.orders],
           empty ="(no orders yet)"
       )
-
-      ui.primary_button(
-          self.frame,
-          "Cancel Reservation",
-          self.cancel
-      ).pack(pady=(4,0))
+      ui.primary_button(self.frame, "Cancel Reservation", self.cancel).pack(pady=(4,0))
 
     def cancel(self):
+        """Cancel this user's reservation after asking them to confirm."""
         order_id = _selected_id(self.tree)
         order = next(
               (o for o in self.orders if o["OrderID"] == order_id),
@@ -198,13 +189,16 @@ class MyOrdersScreen(_BaseScreen):
         self.frame.destroy()
         MyOrdersScreen(self.root, self.user)
 class AdminScreen(_BaseScreen):
+    """Admin screen with three tabs: items, orders and users."""
     title= "Admin Dashboard"
 
     def __init__(self, root, user, item_filter="all"):
+        """item_filter is set forst because body() need it."""
         self._wanted = item_filter
         super().__init__(root,user)
 
     def body(self):
+        """Build the three tabs"""
         notebook = ttk.Notebook(self.frame)
         notebook.pack()
         self._items_tab(self._tab(notebook, "Items"))
@@ -212,6 +206,7 @@ class AdminScreen(_BaseScreen):
         self._users_tab(self._tab(notebook, "Users"))
 
     def _tab(self, notebook, text):
+        """Add a tab and return it"""
         tab = tk.Frame(
             notebook,
             bg=ui.CARD,
@@ -221,10 +216,16 @@ class AdminScreen(_BaseScreen):
         notebook.add(tab, text=text)
         return tab
     def _reload(self):
+        """"""
         self.frame.destroy()
         AdminScreen(self.root, self.user, self._wanted)
 
     def _items_tab(self, tab):
+            """Items tab: filter, counts, Approve and reject buttons """
+            row_raw = all_items()
+            items = [Item.from_row(r) for r in row_raw]
+
+            self.review_queue = ReviewQueue(items)
             items = all_items()
             top = tk.Frame(tab, bg=ui.CARD)
             top.pack(fill="x")
@@ -251,21 +252,17 @@ class AdminScreen(_BaseScreen):
                     [r["Status"] for r in items],
                     ("pending", "active", "reserved", "sold", "rejected"))
                 ).pack(side="left, padx=10")
-            shown = (
-                    items
-                    if self._wanted == "all"
-                    else [r for r in items if r["Status"]== self._wanted]
-                )
+            shown =items if self._wanted == FILTER_ALL else [ i for i in items if i.status == self._wanted]
             rows = [
                     (
-                                   r["itemsName"],
-                                   r["Category"],
-                                   r["Condition"],
-                                   r["ListingType"],
-                                   r["Status"],
-                                   fmt_price(r["Price"], r["ListingType"])
+                                   i.name,
+                                   i.category,
+                                   i.condition,
+                                   i.listing_type,
+                                   i.status,
+                                   fmt_price(i.price, i.listing_type)
                     )
-                    for r in shown
+                    for i in shown
                 ]
             
             self.items_tree = _table(
@@ -290,6 +287,30 @@ class AdminScreen(_BaseScreen):
             lambda: self.decide("rejected")
         ).pack(side="left", padx=4)
 
+    def review_oldest(self):
+        """Pick the listing that has waited the longest"""
+        #Another admin may have delat with soem of these already so skip
+        #any that are no longer pending
+        oldest=None
+        while not self.review_queue.is_empty():
+            candidate = self.review_queue.peek()
+            current = get_item(candidate.item_id)
+            if current is not None and current["Status"] == STATUS_PENDING:
+                oldest = candidate
+                break
+            self.review_queue.take()
+            if oldest is None:
+                messagebox.showinfo("All done", "No listings are wauting for reviw")
+                return
+            if self._wanted not in(FILTER_ALL, STATUS_PENDING):
+                self.frame.destroy()
+                AdminScreen(self.root, self.user, STATUS_PENDING)
+                self.frame.destroy()
+                AdminScreen(self.root, self.user, STATUS_PENDING).review_oldest()
+                return
+            self.items_tree.selection_set(str(oldest.item_id))
+            self.items_tree.see(str(oldest.item_id))
+                
     def _refilter(self):
         wanted = self.item_filter.get()
 
@@ -407,20 +428,17 @@ class AdminScreen(_BaseScreen):
             lambda: self.set_user("Disabled")
             ).pack(side="left", padx=4)
 
-def set_user(self, status):
-    user_id = _selected_id(self.users_tree)
 
-    if user_id is None:
-        messagebox.showerror()
-        return
-
-    if status == "Disabled" and not messagebox.askyesno():
-        return
-
-    set_account_status(user_id, status)
-    messagebox.showinfo()
-    self.reload()
-       
-        
-
-                                                
+    def set_user(self,status):
+        user_id = _selected_id(self.users_tree)
+        if user_id is None:
+            messagebox.showerror()
+            return
+        if status == ACCOUNT_DISABLED and user_id == self.user["id"]:
+            messagebox.showerror()
+            return
+        if status == ACCOUNT_DISABLED and not messagebox.askyesno():
+            return
+        set_account_status(user_id, status)
+        messagebox.showinfo()
+        self._reload()

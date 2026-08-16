@@ -1,12 +1,10 @@
-#This file is to conncet the whoel entire program to MS access database
-#This is to import the neccessary modules
+"""Opens the database and creates its tables"""
 import os 
 import sqlite3
 from pathlib import Path
 
-#This is to gove the location of databse (exact location)
+#Database file sits next to main.py. SECONDHAND_DB can point somehwere else.
 DEFAULT_DB_PATH= Path(__file__).resolve().parent.parent/"secondhand.db"
-#This is an envorment variable whicuh is used if the database is being moved
 DB_PATH=os.environ.get("SECONDHAND_DB", str(DEFAULT_DB_PATH))
 
 SCHEMA ="""
@@ -46,27 +44,26 @@ CREATE TABLE IF NOT EXISTS Orders (
     Status        TEXT NOT NULL DEFAULT 'reserved',
     DateCreated   TEXT NOT NULL
 );
-
-
 """
 
 def _add_missing_columns(conn):
-    """CREATE TABLE IF NOT EXISTS won't add a column to a table that already exists, so bring older secondhand.db files up to date without losing rows."""
-    columns ={r[1] for r in conn.execute("PRAGMA table_info(Orders)")}
-    if columns and "PickupNotes" not in columns:
+   """Add any column missing from an older database file."""
+   columns ={r[1] for r in conn.execute("PRAGMA table_info(Orders)")}
+   if columns and "PickupNotes" not in columns:
         conn.execute("Alter Table Orders ADD COLUMN PickupNotes TEXT")
         conn.commit()
+
+
 def get_connection():
-    #Starts error handling if the connection fials 
+    """Open the database, none if it will not open."""
     try:
-    #Opens connection suing MS Access driver
         conn= sqlite3.connect(DB_PATH)
+        #read columns by name, e.g row ["Price"]
         conn.row_factory = sqlite3.Row
         conn.execute("PRAGMA foreign_keys = ON")
         conn.executescript(SCHEMA)
+        _add_missing_columns(conn)
         return conn
-
-    # This part only runs if an error occurs in the connection.
     except Exception as e:
         print("Connection failed:",e)
         return None
