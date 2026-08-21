@@ -58,7 +58,6 @@ if __name__ == "__main__":
             status=status,
             seller_id=1,
             photo_path="",
-            reject_reason="",
             drop_time="",
             date_created=datetime(
                 2026,

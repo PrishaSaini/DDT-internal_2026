@@ -24,7 +24,6 @@ class Item:
     status: str
     seller_id: int
     photo_path: str
-    reject_reason: str
     drop_time: str
     date_created: datetime
 
@@ -42,19 +41,18 @@ class Item:
             status=row["Status"],
             seller_id=row["SellerID"],
             photo_path=row["PhotoPath"],
-            reject_reason=row["RejectReason"],
             drop_time=row["DropTime"],
             date_created=_parse_date(row["DateCreated"]),
         )
 
     def is_free(self):
         """True if the item is free."""
-        return self.listing_type == "Donation" or not self.price
+        return self.listing_type == "Donation" 
 
 
 @dataclass
 class User:
-    """One user account. password holds the scrambled version, not the real one."""
+    """One user account. password holds the scrambled version"""
     user_id: int
     first_name: str
     last_name: str
@@ -119,7 +117,8 @@ if __name__ == "__main__":
         "ItemID": 1, "itemsName": "Blazer", "Category": "Uniform",
         "ItemSize": "M", "Condition": "Good", "Price": 25.0,
         "ListingType": "Sale", "Status": "active", "SellerID": 7,
-        "PhotoPath": "", "RejectReason": None, "DropTime": "Mon lunch", "DateCreated": "2026-01-31 12:00:00"}
+        "PhotoPath": "", "DropTime": "Mon lunch",
+        "DateCreated": "2026-01-31 12:00:00"}
     item = Item.from_row(item_row)
     assert item.name == "Blazer" and item.price == 25.0 and item.seller_id == 7
     assert item.date_created.year == 2026
@@ -135,12 +134,15 @@ if __name__ == "__main__":
     user = User.from_row({"UserID": 2, "FirstName": "Sam", "LastName": "Blake",
                           "SchoolEmail": "s@x.nz", "Password": "salt:digest",
                           "PhoneNumber": "021", "Role": "Student",
-                          "AccountStatus": "Active", "DateCreated": "2026-01-31 12:00:00"})
+                          "AccountStatus": "Active",
+                          "DateCreated": "2026-01-31 12:00:00"})
 
     assert user.full_name() == "Sam Blake" and user.role == "Student"
-    order = Order.from_row({"OrderID": 3, "ItemID": 1, "BuyerID": 2, "Payment": "Cash",
-                            "Pickup": "Mon lunch", "PickupNotes": "", "Status": "reserved", "DropTime": "Mon lunch",
-                            "DateCreated": "2026-01-31 12:00:00"})
+    order = Order.from_row(
+        {"OrderID": 3, "ItemID": 1, "BuyerID": 2, "Payment": "Cash",
+         "Pickup": "Mon lunch", "PickupNotes": "",
+         "Status": "reserved", "DropTime": "Mon lunch",
+         "DateCreated": "2026-01-31 12:00:00"})
 
     assert order.order_id == 3 and order.status == "reserved"
     print("models self check OK")
