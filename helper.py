@@ -4,7 +4,10 @@ import hmac
 import secrets
 from collections import Counter
 # Email must look like name@place.something with no spaces
-EMAIL_RE = re.compile(r"^[^\s@]+@[^\s@]+\.[^\s@]+$")
+STUDNET_EMAIL_RE = re.compile(
+    r"^[0-9]{5}+@student\.macleans\.school\.nz$", re.IGNORECASE)
+ADMIN_EMAIL_RE = re.compile(
+    r"^(?=.*[a-zA-Z])[^\s@]+@macleans\.school\.nz$", re.IGNORECASE)
 # This is the shortest pwd length allowed
 MIN_PASSWORD_LEN = 6
 
@@ -17,7 +20,9 @@ DONATION = "Donation"
 
 def is_valid_email(email):
     """True if the text looks like an email adress"""
-    return bool(EMAIL_RE.match((email or "").strip()))
+    email= (email or "").strip()
+    return bool(STUDNET_EMAIL_RE.match(email)
+                or ADMIN_EMAIL_RE.match(email))
 
 
 def parse_price(text):
@@ -42,7 +47,7 @@ def verify_password(password, stored):
 
 def hash_password(password):
     """ Scrambles a password for storing as salt:digest format."""
-    # Random salt means if two people have same password they will get different results.
+    # Random salt gives different results for same password.
     salt = secrets.token_hex(16)
     digest = hashlib.pbkdf2_hmac(
         "sha256", password.encode(), salt.encode(), 100_000).hex()
@@ -65,10 +70,13 @@ def status_counts(statuses, order):
 if __name__ == "__main__":
     # Runs this file on its own to check the helpers still work
     # Emails are good, then bad
-    assert is_valid_email("a.b@macleans.school.nz")
-    assert not is_valid_email("has space@a.nz")
-    assert not is_valid_email("no-at-sign.nz")
-    assert not is_valid_email("")
+    assert is_valid_email("12345@student.macleans.school.nz")
+    assert is_valid_email("12345@STUDENT.MACLEANS.SCHOOL.NZ")
+    assert is_valid_email("john@macleans.school.nz")
+    assert is_valid_email("JOHN@MACLEANS.SCHOOL.NZ")
+    assert not is_valid_email("text@gmail.com")
+    assert not is_valid_email("12345@macleans.school.nz")
+    assert not is_valid_email("text@student.macleans.school.nz")
     assert not is_valid_email(None)
     # Prices are normal, edge values then rubbish.
     assert parse_price("12.50") == 12.5
